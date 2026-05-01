@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Volume</title>
+<style>
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 35%, #1e1b4b 0%, #0c0c18 70%);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+  color: #fff;
+  user-select: none;
+}
+
+/* ─── STAGE ─── */
+#stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+}
+
+.lbl {
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  font-weight: 500;
+  transition: color 0.3s, font-size 0.3s;
+}
+
+/* ─── KNOB AREA ─── */
+#knob-wrap {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ambient glow behind knob */
+#knob-glow {
+  position: absolute;
+  inset: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139,92,246,0.4) 0%, transparent 72%);
+  filter: blur(22px);
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+#tick-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ─── KNOB BEZEL (mounting ring) ─── */
+#knob-wrap::before {
+  content: '';
+  position: absolute;
+  width: 226px;
+  height: 226px;
+  border-radius: 50%;
+  background: linear-gradient(150deg, #2e2e50 0%, #0e0e1e 55%);
+  box-shadow:
+    0 6px 20px rgba(0,0,0,0.55),
+    inset 0 2px 3px rgba(255,255,255,0.07),
+    inset 0 -2px 6px rgba(0,0,0,0.5);
+  z-index: 1;
+}
+
+/* ─── KNOB ─── */
+#knob {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  position: relative;
+  cursor: grab;
+  flex-shrink: 0;
+  z-index: 2;
+  background:
+    radial-gradient(circle at 42% 38%, #7a7aa0 0%, #42426a 25%, #232340 55%, #141422 85%);
+  box-shadow:
+    0 24px 64px rgba(0,0,0,0.7),
+    0 6px 20px rgba(0,0,0,0.4),
+    inset 0 3px 8px rgba(255,255,255,0.14),
+    inset 0 -5px 14px rgba(0,0,0,0.65),
+    inset 0 0 0 1.5px rgba(255,255,255,0.06);
+  transition: box-shadow 0.25s;
+}
+#knob:active { cursor: grabbing; }
+#knob:hover {
+  box-shadow:
+    0 28px 72px rgba(0,0,0,0.75),
+    0 6px 26px rgba(139,92,246,0.28),
+    inset 0 3px 8px rgba(255,255,255,0.17),
+    inset 0 -5px 14px rgba(0,0,0,0.65),
+    inset 0 0 0 1.5px rgba(255,255,255,0.09);
+}
+
+/* indicator dot — rotates with knob */
+#knob-dot {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #c4b5fd;
+  box-shadow:
+    0 0 10px #a78bfa,
+    0 0 28px rgba(167,139,250,0.6),
+    0 0 2px rgba(255,255,255,0.8);
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* indicator stem — below the dot */
+#knob-line {
+  position: absolute;
+  width: 2.5px;
+  height: 50px;
+  background: linear-gradient(to bottom, rgba(167,139,250,0.75), transparent);
+  border-radius: 1.5px;
+  top: 31px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ─── READOUT ─── */
+#readout {
+  font-size: 68px;
+  font-weight: 100;
+  letter-spacing: -3px;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  min-width: 180px;
+}
+#readout .pct {
+  font-size: 24px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.38);
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+
+/* ─── CHAOS ─── */
+body.chaos {
+  animation: bgFlash 0.14s steps(1) infinite;
+}
+@keyframes bgFlash {
+  0%   { background: #ff0035; }
+  14%  { background: #ff8c00; }
+  28%  { background: #00ff5e; }
+  42%  { background: #004fff; }
+  57%  { background: #cc00ff; }
+  71%  { background: #ffff00; }
+  85%  { background: #00d4ff; }
+}
+
+body.chaos .lbl {
+  font-family: Impact, sans-serif;
+  color: #ffff00 !important;
+  text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+  font-size: 22px;
+  letter-spacing: 3px;
+  animation: txtShake 0.08s infinite;
+}
+@keyframes txtShake {
+  0%  { transform: translate(0,0) rotate(0); }
+  25% { transform: translate(4px,-2px) rotate(2deg); }
+  50% { transform: translate(-4px,2px) rotate(-2deg); }
+  75% { transform: translate(2px,3px) rotate(0.5deg); }
+}
+
+body.chaos #readout {
+  font-family: Impact, sans-serif;
+  font-size: 96px;
+  font-weight: 900;
+  color: #ffff00;
+  text-shadow: 5px 5px 0 #000, -2px -2px 0 #f00;
+  letter-spacing: -4px;
+  animation: numShake 0.06s infinite;
+}
+body.chaos #readout .pct {
+  color: #ff3333;
+  font-size: 36px;
+  text-shadow: 3px 3px 0 #000;
+}
+@keyframes numShake {
+  0%  { transform: translate(0,0) skew(0); }
+  20% { transform: translate(6px,-6px) skew(-2.5deg); }
+  40% { transform: translate(-6px,6px) skew(2.5deg); }
+  60% { transform: translate(6px,6px) skew(-1.5deg); }
+  80% { transform: translate(-6px,-6px) skew(1.5deg); }
+}
+
+body.chaos #knob {
+  animation: knobPulse 0.16s infinite;
+  cursor: default !important;
+}
+@keyframes knobPulse {
+  0%   { box-shadow: 0 0 36px 14px rgba(255,0,80,0.85), inset 0 3px 8px rgba(255,255,255,0.14); }
+  33%  { box-shadow: 0 0 36px 14px rgba(0,255,100,0.85), inset 0 3px 8px rgba(255,255,255,0.14); }
+  66%  { box-shadow: 0 0 36px 14px rgba(80,100,255,0.85), inset 0 3px 8px rgba(255,255,255,0.14); }
+}
+
+/* ─── PRE-CHAOS SHAKE ─── */
+#knob.pre-chaos {
+  animation: preShake 0.25s infinite;
+}
+@keyframes preShake {
+  0%  { transform: rotate(var(--vdeg)) translate(0,0); }
+  25% { transform: rotate(var(--vdeg)) translate(2px,-1px); }
+  50% { transform: rotate(var(--vdeg)) translate(-2px,1px); }
+  75% { transform: rotate(var(--vdeg)) translate(1px,2px); }
+}
+
+/* ─── GAME ─── */
+#game {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+}
+.hit {
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 900;
+  font-family: Impact, sans-serif;
+  color: #fff;
+  pointer-events: auto;
+  cursor: pointer;
+  animation: hitPop 1.5s cubic-bezier(0.36,0.07,0.19,0.97) forwards;
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+  border: 3px solid rgba(255,255,255,0.22);
+}
+.hit.plus {
+  background: radial-gradient(circle at 38% 32%, #ff8080, #aa0000);
+  box-shadow: 0 0 28px rgba(255,50,50,0.7), 0 5px 14px rgba(0,0,0,0.45);
+}
+.hit.minus {
+  background: radial-gradient(circle at 38% 32%, #70a8ff, #002ebb);
+  box-shadow: 0 0 28px rgba(60,120,255,0.7), 0 5px 14px rgba(0,0,0,0.45);
+}
+@keyframes hitPop {
+  0%   { transform: scale(0) rotate(-30deg); opacity: 0; }
+  18%  { transform: scale(1.45) rotate(8deg);  opacity: 1; }
+  28%  { transform: scale(0.92) rotate(-3deg); opacity: 1; }
+  80%  { transform: scale(1.0)  rotate(0);    opacity: 1; }
+  100% { transform: scale(0.6);                opacity: 0; }
+}
+
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div class="lbl" id="top-label">Volume</div>
+
+  <div id="knob-wrap">
+    <div id="knob-glow"></div>
+    <svg id="tick-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="knob">
+      <div id="knob-line"></div>
+      <div id="knob-dot"></div>
+    </div>
+  </div>
+
+  <div id="readout">30<span class="pct">%</span></div>
+  <div class="lbl" id="hint">drag up &middot; down</div>
+</div>
+
+<div id="game"></div>
+
+<script>
+// ─── CONSTANTS ──────────────────────────────────────────────
+const SVG_NS   = 'http://www.w3.org/2000/svg';
+const CX = 150, CY = 150;
+const TRACK_R  = 140;
+const TICK_OUT = 142;
+const START    = -135;   // degrees from north at vol=0
+const RANGE    = 270;    // degrees total
+
+// ─── STATE ──────────────────────────────────────────────────
+let volume        = 0.30;
+let isDragging    = false;
+let lastY         = 0;
+let audioStarted  = false;
+let chaosScheduled= false;
+let chaosStarted  = false;
+
+let audioCtx, masterGain, osc1, osc2, noiseSrc, chaosOsc;
+
+// bounce positions
+let kx, ky, kvx = 6.5, kvy = 4.8;
+let lx, ly, lvx = 4.2, lvy = 3.5;
+
+// ─── ELEMENTS ───────────────────────────────────────────────
+const knob     = document.getElementById('knob');
+const knobGlow = document.getElementById('knob-glow');
+const tickSvg  = document.getElementById('tick-svg');
+const readout  = document.getElementById('readout');
+const topLabel = document.getElementById('top-label');
+const game     = document.getElementById('game');
+const stage    = document.getElementById('stage');
+
+// ─── SVG UTILITIES ──────────────────────────────────────────
+function toXY(deg, r) {
+  const rad = (deg - 90) * Math.PI / 180;
+  return { x: CX + r * Math.cos(rad), y: CY + r * Math.sin(rad) };
+}
+
+function arcD(a1, a2, r) {
+  const s = toXY(a1, r);
+  const e = toXY(a2, r);
+  const large = (a2 - a1) > 180 ? 1 : 0;
+  return `M${s.x.toFixed(2)} ${s.y.toFixed(2)} A${r} ${r} 0 ${large} 1 ${e.x.toFixed(2)} ${e.y.toFixed(2)}`;
+}
+
+// ─── BUILD SVG ──────────────────────────────────────────────
+// glow filter
+const defs = document.createElementNS(SVG_NS, 'defs');
+defs.innerHTML = `
+  <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="2.8" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%"   stop-color="#6d28d9"/>
+    <stop offset="100%" stop-color="#c4b5fd"/>
+  </linearGradient>
+`;
+tickSvg.appendChild(defs);
+
+// background track
+const trackBg = document.createElementNS(SVG_NS, 'path');
+trackBg.setAttribute('d', arcD(START, START + RANGE, TRACK_R));
+trackBg.setAttribute('fill', 'none');
+trackBg.setAttribute('stroke', 'rgba(255,255,255,0.07)');
+trackBg.setAttribute('stroke-width', '5');
+trackBg.setAttribute('stroke-linecap', 'round');
+tickSvg.appendChild(trackBg);
+
+// active fill arc
+const trackFill = document.createElementNS(SVG_NS, 'path');
+trackFill.setAttribute('fill', 'none');
+trackFill.setAttribute('stroke', '#9333ea');
+trackFill.setAttribute('stroke-width', '5');
+trackFill.setAttribute('stroke-linecap', 'round');
+trackFill.setAttribute('filter', 'url(#glow)');
+tickSvg.appendChild(trackFill);
+
+// ticks
+const TICK_N = 13;
+const tickEls = [];
+for (let i = 0; i < TICK_N; i++) {
+  const frac    = i / (TICK_N - 1);
+  const angle   = frac * RANGE + START;
+  const isMaj   = i % 6 === 0;
+  const innerR  = isMaj ? TICK_OUT - 12 : TICK_OUT - 7;
+
+  const p1 = toXY(angle, TICK_OUT);
+  const p2 = toXY(angle, innerR);
+
+  const line = document.createElementNS(SVG_NS, 'line');
+  line.setAttribute('x1', p1.x.toFixed(2));
+  line.setAttribute('y1', p1.y.toFixed(2));
+  line.setAttribute('x2', p2.x.toFixed(2));
+  line.setAttribute('y2', p2.y.toFixed(2));
+  line.setAttribute('stroke-linecap', 'round');
+  line.setAttribute('stroke-width', isMaj ? '2.5' : '1.5');
+
+  tickEls.push({ el: line, frac });
+  tickSvg.appendChild(line);
+}
+
+// ─── VISUALS ────────────────────────────────────────────────
+function updateVisuals() {
+  const vdeg = volume * RANGE + START;
+
+  // rotate knob (CSS custom prop for preShake animation)
+  knob.style.setProperty('--vdeg', vdeg.toFixed(1) + 'deg');
+  if (!knob.classList.contains('pre-chaos')) {
+    knob.style.transform = `rotate(${vdeg.toFixed(1)}deg)`;
+  }
+
+  // readout number
+  readout.innerHTML = `${Math.round(volume * 100)}<span class="pct">%</span>`;
+
+  // active arc
+  if (volume > 0.005) {
+    trackFill.setAttribute('d', arcD(START, vdeg, TRACK_R));
+    trackFill.style.opacity = '1';
+  } else {
+    trackFill.style.opacity = '0';
+  }
+
+  // tick colours
+  tickEls.forEach(({ el, frac }) => {
+    if (frac <= volume + 0.004) {
+      el.setAttribute('stroke', '#a78bfa');
+    } else {
+      el.setAttribute('stroke', 'rgba(255,255,255,0.13)');
+    }
+  });
+
+  // ambient glow intensity
+  knobGlow.style.opacity = (0.35 + volume * 0.65).toFixed(2);
+}
+
+updateVisuals();
+
+// ─── AUDIO ──────────────────────────────────────────────────
+function makeNoise(ctx) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+  const ch  = buf.getChannelData(0);
+  for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop   = true;
+  return src;
+}
+
+function startAudio() {
+  audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = volume;
+
+  osc1 = audioCtx.createOscillator();
+  osc2 = audioCtx.createOscillator();
+  osc1.type = 'sine';     osc1.frequency.value = 220;
+  osc2.type = 'triangle'; osc2.frequency.value = 330;
+
+  const lg = audioCtx.createGain();
+  lg.gain.value = 0.11;
+  osc1.connect(lg); osc2.connect(lg); lg.connect(masterGain);
+
+  noiseSrc = makeNoise(audioCtx);
+  const ng = audioCtx.createGain();
+  ng.gain.value = 0.022;
+  noiseSrc.connect(ng); ng.connect(masterGain);
+
+  masterGain.connect(audioCtx.destination);
+  osc1.start(); osc2.start(); noiseSrc.start();
+}
+
+// ─── CHAOS ──────────────────────────────────────────────────
+function startChaos() {
+  if (chaosStarted) return;
+  chaosStarted = true;
+
+  knob.classList.remove('pre-chaos');
+  document.body.classList.add('chaos');
+
+  // swap audio to chaotic square wave
+  try { osc1.stop(); osc2.stop(); noiseSrc.stop(); } catch(e) {}
+
+  chaosOsc = audioCtx.createOscillator();
+  chaosOsc.type = 'square';
+  chaosOsc.frequency.value = 880;
+  chaosOsc.connect(masterGain);
+  chaosOsc.start();
+
+  setInterval(() => {
+    masterGain.gain.value    = 0.25 + Math.random() * 0.75;
+    chaosOsc.frequency.value = 180 + Math.random() * 1700;
+  }, 110);
+
+  // detach knob → fixed + bounce
+  const kr = knob.getBoundingClientRect();
+  kx = kr.left; ky = kr.top;
+  knob.style.cssText += ';position:fixed;left:' + kx + 'px;top:' + ky + 'px;z-index:200;';
+  document.body.appendChild(knob);
+
+  setInterval(() => {
+    kx += kvx; ky += kvy;
+    if (kx <= 0 || kx >= window.innerWidth  - 200) kvx *= -1;
+    if (ky <= 0 || ky >= window.innerHeight - 200) kvy *= -1;
+    knob.style.left = kx + 'px';
+    knob.style.top  = ky + 'px';
+  }, 16);
+
+  // detach label → fixed + bounce
+  const lr = topLabel.getBoundingClientRect();
+  lx = lr.left; ly = lr.top;
+  topLabel.style.cssText += ';position:fixed;left:' + lx + 'px;top:' + ly + 'px;z-index:200;';
+  document.body.appendChild(topLabel);
+
+  setInterval(() => {
+    lx += lvx; ly += lvy;
+    if (lx <= 0 || lx >= window.innerWidth  - 130) lvx *= -1;
+    if (ly <= 0 || ly >= window.innerHeight -  36) lvy *= -1;
+    topLabel.style.left = lx + 'px';
+    topLabel.style.top  = ly + 'px';
+  }, 16);
+
+  // game
+  setInterval(spawnPair, 850);
+}
+
+// ─── GAME ───────────────────────────────────────────────────
+function spawnPair() {
+  const x = 60  + Math.random() * (window.innerWidth  - 260);
+  const y = 60  + Math.random() * (window.innerHeight - 160);
+  spawnHit(x,       y, true);   // minus (blue)
+  spawnHit(x + 115, y, false);  // plus  (red)
+}
+
+function spawnHit(x, y, isMinus) {
+  const el = document.createElement('div');
+  el.className = 'hit ' + (isMinus ? 'minus' : 'plus');
+  el.textContent = isMinus ? '−' : '+';
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+
+  el.onclick = () => {
+    volume = Math.max(0, Math.min(1, volume + (isMinus ? -0.15 : 0.15)));
+    if (masterGain) masterGain.gain.value = volume;
+    el.remove();
+  };
+
+  setTimeout(() => {
+    if (el.parentNode) {
+      volume = Math.min(1, volume + 0.08);
+      if (masterGain) masterGain.gain.value = volume;
+      el.remove();
+    }
+  }, 1600);
+
+  game.appendChild(el);
+}
+
+// ─── INTERACTION ────────────────────────────────────────────
+knob.addEventListener('mousedown', onDown);
+knob.addEventListener('touchstart', onDown, { passive: true });
+
+function onDown(e) {
+  if (!audioStarted) { startAudio(); audioStarted = true; }
+
+  isDragging = true;
+  lastY = e.touches ? e.touches[0].clientY : e.clientY;
+
+  if (!chaosScheduled) {
+    chaosScheduled = true;
+    // pre-chaos warning shake 1s before
+    setTimeout(() => {
+      if (!chaosStarted) knob.classList.add('pre-chaos');
+    }, 2400);
+    setTimeout(startChaos, 3400);
+  }
+}
+
+window.addEventListener('mousemove', onMove);
+window.addEventListener('touchmove', onMove, { passive: true });
+
+function onMove(e) {
+  if (!isDragging || chaosStarted) return;
+  const y     = e.touches ? e.touches[0].clientY : e.clientY;
+  const delta = (lastY - y) * 0.0058;
+  volume  = Math.max(0, Math.min(1, volume + delta));
+  if (masterGain) masterGain.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.012);
+  lastY = y;
+  updateVisuals();
+}
+
+window.addEventListener('mouseup',  () => { isDragging = false; });
+window.addEventListener('touchend', () => { isDragging = false; });
+
+// fallback: click anywhere to init audio
+document.body.addEventListener('click', () => {
+  if (!audioStarted) { startAudio(); audioStarted = true; }
+}, { once: true });
+</script>
+
+</body>
+</html>
