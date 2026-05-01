@@ -47,7 +47,6 @@ body {
   justify-content: center;
 }
 
-/* ambient glow behind knob */
 #knob-glow {
   position: absolute;
   inset: 40px;
@@ -66,7 +65,6 @@ body {
   pointer-events: none;
 }
 
-/* ─── KNOB BEZEL (mounting ring) ─── */
 #knob-wrap::before {
   content: '';
   position: absolute;
@@ -110,7 +108,6 @@ body {
     inset 0 0 0 1.5px rgba(255,255,255,0.09);
 }
 
-/* indicator dot — rotates with knob */
 #knob-dot {
   position: absolute;
   width: 11px;
@@ -126,7 +123,6 @@ body {
   transform: translateX(-50%);
 }
 
-/* indicator stem — below the dot */
 #knob-line {
   position: absolute;
   width: 2.5px;
@@ -159,6 +155,7 @@ body {
 /* ─── CHAOS ─── */
 body.chaos {
   animation: bgFlash 0.14s steps(1) infinite;
+  cursor: none;
 }
 @keyframes bgFlash {
   0%   { background: #ff0035; }
@@ -209,7 +206,7 @@ body.chaos #readout .pct {
 
 body.chaos #knob {
   animation: knobPulse 0.16s infinite;
-  cursor: default !important;
+  cursor: none !important;
 }
 @keyframes knobPulse {
   0%   { box-shadow: 0 0 36px 14px rgba(255,0,80,0.85), inset 0 3px 8px rgba(255,255,255,0.14); }
@@ -217,7 +214,6 @@ body.chaos #knob {
   66%  { box-shadow: 0 0 36px 14px rgba(80,100,255,0.85), inset 0 3px 8px rgba(255,255,255,0.14); }
 }
 
-/* ─── PRE-CHAOS SHAKE ─── */
 #knob.pre-chaos {
   animation: preShake 0.25s infinite;
 }
@@ -228,7 +224,101 @@ body.chaos #knob {
   75% { transform: rotate(var(--vdeg)) translate(1px,2px); }
 }
 
-/* ─── GAME ─── */
+/* ─── HUD (chaos) ─── */
+#hud {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  gap: 20px;
+  align-items: center;
+  padding: 12px 22px;
+  background: rgba(0,0,0,0.55);
+  border: 2px solid #ffff00;
+  border-radius: 8px;
+  font-family: Impact, sans-serif;
+  letter-spacing: 2px;
+  z-index: 70;
+  pointer-events: none;
+  box-shadow: 0 0 20px rgba(255,255,0,0.4);
+}
+body.chaos #hud { display: flex; }
+.hud-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 64px;
+}
+.hud-stat .k {
+  font-size: 10px;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 3px;
+}
+.hud-stat .v {
+  font-size: 26px;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+  line-height: 1;
+  margin-top: 3px;
+}
+.hud-stat .v.streak { color: #ffd24a; }
+.hud-stat .v.accu   { color: #4ade80; }
+
+#mission {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  font-family: Impact, sans-serif;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: #fff;
+  text-shadow: 3px 3px 0 #000, 0 0 12px rgba(255,255,0,0.7);
+  z-index: 70;
+  pointer-events: none;
+  text-align: center;
+}
+body.chaos #mission { display: block; }
+#mission .danger { color: #ff5050; }
+#mission .good   { color: #4ade80; }
+
+/* ─── CROSSHAIR ─── */
+#crosshair {
+  position: fixed;
+  width: 38px;
+  height: 38px;
+  pointer-events: none;
+  display: none;
+  z-index: 999;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: difference;
+}
+#crosshair::before, #crosshair::after {
+  content: '';
+  position: absolute;
+  background: #fff;
+  box-shadow: 0 0 4px rgba(255,255,255,0.8);
+}
+#crosshair::before {
+  left: 50%; top: 0; width: 2px; height: 100%;
+  transform: translateX(-50%);
+}
+#crosshair::after {
+  top: 50%; left: 0; height: 2px; width: 100%;
+  transform: translateY(-50%);
+}
+#crosshair .ring {
+  position: absolute;
+  inset: 25%;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255,255,255,0.8);
+}
+body.chaos #crosshair { display: block; }
+
+/* ─── GAME TARGETS ─── */
 #game {
   position: fixed;
   inset: 0;
@@ -237,36 +327,176 @@ body.chaos #knob {
 }
 .hit {
   position: absolute;
-  width: 96px;
-  height: 96px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48px;
   font-weight: 900;
   font-family: Impact, sans-serif;
   color: #fff;
   pointer-events: auto;
-  cursor: pointer;
-  animation: hitPop 1.5s cubic-bezier(0.36,0.07,0.19,0.97) forwards;
-  text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-  border: 3px solid rgba(255,255,255,0.22);
+  cursor: none;
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
+  border: 3px solid rgba(255,255,255,0.28);
+  transform: translate(-50%, -50%) scale(0);
+  animation: hitIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 .hit.plus {
   background: radial-gradient(circle at 38% 32%, #ff8080, #aa0000);
-  box-shadow: 0 0 28px rgba(255,50,50,0.7), 0 5px 14px rgba(0,0,0,0.45);
+  box-shadow:
+    0 0 28px rgba(255,50,50,0.7),
+    0 5px 14px rgba(0,0,0,0.45),
+    inset 0 0 0 2px rgba(255,255,255,0.15);
 }
 .hit.minus {
-  background: radial-gradient(circle at 38% 32%, #70a8ff, #002ebb);
-  box-shadow: 0 0 28px rgba(60,120,255,0.7), 0 5px 14px rgba(0,0,0,0.45);
+  background: radial-gradient(circle at 38% 32%, #70ffaf, #006e2e);
+  box-shadow:
+    0 0 28px rgba(74,222,128,0.7),
+    0 5px 14px rgba(0,0,0,0.45),
+    inset 0 0 0 2px rgba(255,255,255,0.15);
 }
-@keyframes hitPop {
-  0%   { transform: scale(0) rotate(-30deg); opacity: 0; }
-  18%  { transform: scale(1.45) rotate(8deg);  opacity: 1; }
-  28%  { transform: scale(0.92) rotate(-3deg); opacity: 1; }
-  80%  { transform: scale(1.0)  rotate(0);    opacity: 1; }
-  100% { transform: scale(0.6);                opacity: 0; }
+@keyframes hitIn {
+  0%   { transform: translate(-50%,-50%) scale(0) rotate(-30deg); }
+  60%  { transform: translate(-50%,-50%) scale(1.15) rotate(8deg); }
+  100% { transform: translate(-50%,-50%) scale(1) rotate(0); }
+}
+.hit.gone { animation: hitOut 0.22s ease-out forwards; pointer-events: none; }
+@keyframes hitOut {
+  to { transform: translate(-50%,-50%) scale(1.6); opacity: 0; }
+}
+
+/* lifetime ring (SVG) */
+.hit svg.ring {
+  position: absolute;
+  inset: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  pointer-events: none;
+  transform: rotate(-90deg);
+}
+.hit svg.ring circle {
+  fill: none;
+  stroke: rgba(255,255,255,0.95);
+  stroke-width: 3;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgba(255,255,255,0.6));
+}
+
+/* floating score popup */
+.popup {
+  position: fixed;
+  font-family: Impact, sans-serif;
+  font-size: 36px;
+  font-weight: 900;
+  pointer-events: none;
+  z-index: 80;
+  text-shadow: 3px 3px 0 #000;
+  transform: translate(-50%, -50%);
+  animation: popUp 0.85s ease-out forwards;
+}
+.popup.good { color: #4ade80; }
+.popup.bad  { color: #ff5050; }
+@keyframes popUp {
+  0%   { opacity: 0; transform: translate(-50%, -40%) scale(0.5); }
+  20%  { opacity: 1; transform: translate(-50%, -55%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -120%) scale(0.9); }
+}
+
+/* hit shockwave */
+.shock {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 75;
+  transform: translate(-50%, -50%);
+  border: 3px solid currentColor;
+  animation: shockOut 0.55s ease-out forwards;
+}
+.shock.good { color: rgba(74,222,128,0.9); }
+.shock.bad  { color: rgba(255,80,80,0.9); }
+@keyframes shockOut {
+  0%   { width: 20px; height: 20px; opacity: 1; }
+  100% { width: 220px; height: 220px; opacity: 0; }
+}
+
+/* ─── VICTORY SCREEN ─── */
+#victory {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  background: radial-gradient(ellipse at center, #0a1f0a 0%, #000 80%);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+#victory.show { display: flex; animation: vicIn 0.4s ease-out; }
+@keyframes vicIn { from { opacity: 0; } to { opacity: 1; } }
+#victory h1 {
+  font-family: Impact, sans-serif;
+  font-size: 96px;
+  letter-spacing: 6px;
+  color: #4ade80;
+  text-shadow: 5px 5px 0 #000, 0 0 40px rgba(74,222,128,0.8);
+  animation: vicPulse 1.2s ease-in-out infinite;
+}
+@keyframes vicPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.05); }
+}
+#victory .sub {
+  font-size: 18px;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+}
+#victory .stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 18px;
+  font-family: Impact, sans-serif;
+}
+#victory .stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+}
+#victory .stats .k {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.5);
+  font-family: 'Segoe UI', sans-serif;
+  font-weight: 500;
+}
+#victory .stats .v {
+  font-size: 38px;
+  color: #fff;
+  margin-top: 6px;
+}
+#victory button {
+  margin-top: 14px;
+  background: transparent;
+  border: 2px solid #4ade80;
+  color: #4ade80;
+  padding: 12px 32px;
+  font-family: Impact, sans-serif;
+  font-size: 18px;
+  letter-spacing: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+#victory button:hover {
+  background: #4ade80;
+  color: #000;
+  box-shadow: 0 0 24px rgba(74,222,128,0.6);
 }
 
 </style>
@@ -289,7 +519,31 @@ body.chaos #knob {
   <div class="lbl" id="hint">drag up &middot; down</div>
 </div>
 
+<div id="hud">
+  <div class="hud-stat"><div class="k">VOL</div><div class="v" id="hud-vol">30%</div></div>
+  <div class="hud-stat"><div class="k">SCORE</div><div class="v" id="hud-score">0</div></div>
+  <div class="hud-stat"><div class="k">STREAK</div><div class="v streak" id="hud-streak">0</div></div>
+  <div class="hud-stat"><div class="k">ACCU</div><div class="v accu" id="hud-accu">—</div></div>
+</div>
+
+<div id="mission">
+  HIT <span class="good">−</span> &nbsp; AVOID <span class="danger">+</span> &nbsp; SILENCE THE CHAOS
+</div>
+
+<div id="crosshair"><div class="ring"></div></div>
 <div id="game"></div>
+
+<div id="victory">
+  <div class="sub">CHAOS NEUTRALIZED</div>
+  <h1>SILENCE</h1>
+  <div class="stats">
+    <div><div class="k">SCORE</div><div class="v" id="vic-score">0</div></div>
+    <div><div class="k">ACCURACY</div><div class="v" id="vic-accu">0%</div></div>
+    <div><div class="k">BEST STREAK</div><div class="v" id="vic-streak">0</div></div>
+    <div><div class="k">TIME</div><div class="v" id="vic-time">0s</div></div>
+  </div>
+  <button id="vic-again">PLAY AGAIN</button>
+</div>
 
 <script>
 // ─── CONSTANTS ──────────────────────────────────────────────
@@ -297,8 +551,8 @@ const SVG_NS   = 'http://www.w3.org/2000/svg';
 const CX = 150, CY = 150;
 const TRACK_R  = 140;
 const TICK_OUT = 142;
-const START    = -135;   // degrees from north at vol=0
-const RANGE    = 270;    // degrees total
+const START    = -135;
+const RANGE    = 270;
 
 // ─── STATE ──────────────────────────────────────────────────
 let volume        = 0.30;
@@ -307,8 +561,15 @@ let lastY         = 0;
 let audioStarted  = false;
 let chaosScheduled= false;
 let chaosStarted  = false;
+let chaosWon      = false;
 
-let audioCtx, masterGain, osc1, osc2, noiseSrc, chaosOsc;
+let audioCtx, masterGain, osc1, osc2, noiseSrc, chaosOsc, chaosLfo;
+let chaosTickInt, knobBounceInt, lblBounceInt, spawnInt, creepInt;
+
+// game stats
+let score = 0, streak = 0, bestStreak = 0;
+let hits = 0, misses = 0;
+let chaosStartTime = 0;
 
 // bounce positions
 let kx, ky, kvx = 6.5, kvy = 4.8;
@@ -321,7 +582,12 @@ const tickSvg  = document.getElementById('tick-svg');
 const readout  = document.getElementById('readout');
 const topLabel = document.getElementById('top-label');
 const game     = document.getElementById('game');
-const stage    = document.getElementById('stage');
+const crosshair= document.getElementById('crosshair');
+const hudVol   = document.getElementById('hud-vol');
+const hudScore = document.getElementById('hud-score');
+const hudStreak= document.getElementById('hud-streak');
+const hudAccu  = document.getElementById('hud-accu');
+const victory  = document.getElementById('victory');
 
 // ─── SVG UTILITIES ──────────────────────────────────────────
 function toXY(deg, r) {
@@ -337,7 +603,6 @@ function arcD(a1, a2, r) {
 }
 
 // ─── BUILD SVG ──────────────────────────────────────────────
-// glow filter
 const defs = document.createElementNS(SVG_NS, 'defs');
 defs.innerHTML = `
   <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
@@ -351,7 +616,6 @@ defs.innerHTML = `
 `;
 tickSvg.appendChild(defs);
 
-// background track
 const trackBg = document.createElementNS(SVG_NS, 'path');
 trackBg.setAttribute('d', arcD(START, START + RANGE, TRACK_R));
 trackBg.setAttribute('fill', 'none');
@@ -360,7 +624,6 @@ trackBg.setAttribute('stroke-width', '5');
 trackBg.setAttribute('stroke-linecap', 'round');
 tickSvg.appendChild(trackBg);
 
-// active fill arc
 const trackFill = document.createElementNS(SVG_NS, 'path');
 trackFill.setAttribute('fill', 'none');
 trackFill.setAttribute('stroke', '#9333ea');
@@ -369,7 +632,6 @@ trackFill.setAttribute('stroke-linecap', 'round');
 trackFill.setAttribute('filter', 'url(#glow)');
 tickSvg.appendChild(trackFill);
 
-// ticks
 const TICK_N = 13;
 const tickEls = [];
 for (let i = 0; i < TICK_N; i++) {
@@ -397,16 +659,14 @@ for (let i = 0; i < TICK_N; i++) {
 function updateVisuals() {
   const vdeg = volume * RANGE + START;
 
-  // rotate knob (CSS custom prop for preShake animation)
   knob.style.setProperty('--vdeg', vdeg.toFixed(1) + 'deg');
   if (!knob.classList.contains('pre-chaos')) {
     knob.style.transform = `rotate(${vdeg.toFixed(1)}deg)`;
   }
 
-  // readout number
   readout.innerHTML = `${Math.round(volume * 100)}<span class="pct">%</span>`;
+  hudVol.textContent = `${Math.round(volume * 100)}%`;
 
-  // active arc
   if (volume > 0.005) {
     trackFill.setAttribute('d', arcD(START, vdeg, TRACK_R));
     trackFill.style.opacity = '1';
@@ -414,7 +674,6 @@ function updateVisuals() {
     trackFill.style.opacity = '0';
   }
 
-  // tick colours
   tickEls.forEach(({ el, frac }) => {
     if (frac <= volume + 0.004) {
       el.setAttribute('stroke', '#a78bfa');
@@ -423,8 +682,17 @@ function updateVisuals() {
     }
   });
 
-  // ambient glow intensity
   knobGlow.style.opacity = (0.35 + volume * 0.65).toFixed(2);
+}
+
+function setVolume(v, fromGame) {
+  volume = Math.max(0, Math.min(1, v));
+  if (masterGain) {
+    if (fromGame) masterGain.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.04);
+    else          masterGain.gain.value = volume;
+  }
+  updateVisuals();
+  if (chaosStarted && !chaosWon && volume <= 0.001) winChaos();
 }
 
 updateVisuals();
@@ -463,10 +731,27 @@ function startAudio() {
   osc1.start(); osc2.start(); noiseSrc.start();
 }
 
+// short blip used for hit / miss feedback
+function blip(freq, dur, type, peak) {
+  if (!audioCtx) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type || 'square';
+  o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(freq * 0.5, audioCtx.currentTime + dur);
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(peak || 0.18, audioCtx.currentTime + 0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start();
+  o.stop(audioCtx.currentTime + dur + 0.02);
+}
+
 // ─── CHAOS ──────────────────────────────────────────────────
 function startChaos() {
   if (chaosStarted) return;
   chaosStarted = true;
+  chaosStartTime = performance.now();
 
   knob.classList.remove('pre-chaos');
   document.body.classList.add('chaos');
@@ -480,8 +765,11 @@ function startChaos() {
   chaosOsc.connect(masterGain);
   chaosOsc.start();
 
-  setInterval(() => {
-    masterGain.gain.value    = 0.25 + Math.random() * 0.75;
+  chaosTickInt = setInterval(() => {
+    // keep gain riding the player's volume, but jitter inside it
+    const base = volume;
+    const jit  = base * (0.55 + Math.random() * 0.45);
+    masterGain.gain.setTargetAtTime(jit, audioCtx.currentTime, 0.02);
     chaosOsc.frequency.value = 180 + Math.random() * 1700;
   }, 110);
 
@@ -491,7 +779,7 @@ function startChaos() {
   knob.style.cssText += ';position:fixed;left:' + kx + 'px;top:' + ky + 'px;z-index:200;';
   document.body.appendChild(knob);
 
-  setInterval(() => {
+  knobBounceInt = setInterval(() => {
     kx += kvx; ky += kvy;
     if (kx <= 0 || kx >= window.innerWidth  - 200) kvx *= -1;
     if (ky <= 0 || ky >= window.innerHeight - 200) kvy *= -1;
@@ -505,7 +793,7 @@ function startChaos() {
   topLabel.style.cssText += ';position:fixed;left:' + lx + 'px;top:' + ly + 'px;z-index:200;';
   document.body.appendChild(topLabel);
 
-  setInterval(() => {
+  lblBounceInt = setInterval(() => {
     lx += lvx; ly += lvy;
     if (lx <= 0 || lx >= window.innerWidth  - 130) lvx *= -1;
     if (ly <= 0 || ly >= window.innerHeight -  36) lvy *= -1;
@@ -513,47 +801,196 @@ function startChaos() {
     topLabel.style.top  = ly + 'px';
   }, 16);
 
-  // game
-  setInterval(spawnPair, 850);
+  // game tick: spawn a target on a tightening cadence
+  scheduleSpawn();
+
+  // creep: untouched chaos slowly cranks the volume up
+  creepInt = setInterval(() => {
+    if (chaosWon) return;
+    setVolume(volume + 0.012, true);
+  }, 700);
 }
 
-// ─── GAME ───────────────────────────────────────────────────
-function spawnPair() {
-  const x = 60  + Math.random() * (window.innerWidth  - 260);
-  const y = 60  + Math.random() * (window.innerHeight - 160);
-  spawnHit(x,       y, true);   // minus (blue)
-  spawnHit(x + 115, y, false);  // plus  (red)
+function scheduleSpawn() {
+  if (chaosWon) return;
+  const elapsed = (performance.now() - chaosStartTime) / 1000;
+  // spawn cadence speeds up over the first ~25s
+  const delay = Math.max(380, 900 - elapsed * 22);
+  spawnInt = setTimeout(() => {
+    spawnTarget();
+    scheduleSpawn();
+  }, delay);
 }
 
-function spawnHit(x, y, isMinus) {
+// ─── AIM-LAB STYLE TARGETS ──────────────────────────────────
+function spawnTarget() {
+  if (chaosWon) return;
+
+  // mostly minus targets; occasional plus traps
+  const elapsed = (performance.now() - chaosStartTime) / 1000;
+  const plusChance = Math.min(0.28, 0.10 + elapsed * 0.005);
+  const isMinus = Math.random() > plusChance;
+
+  // varied target sizes — smaller = harder = more reward
+  const size = isMinus
+    ? 56 + Math.random() * 44   // 56–100 px
+    : 70 + Math.random() * 30;  // traps a bit bigger so they're easy to "see"
+
+  const margin = size / 2 + 30;
+  const x = margin + Math.random() * (window.innerWidth  - margin * 2);
+  const y = margin + 70 + Math.random() * (window.innerHeight - margin * 2 - 110);
+
+  const lifetime = isMinus
+    ? Math.max(900, 1700 - elapsed * 18) // shrinks as game goes on
+    : 1500;
+
+  spawnHit(x, y, isMinus, size, lifetime);
+}
+
+function spawnHit(x, y, isMinus, size, lifetime) {
   const el = document.createElement('div');
   el.className = 'hit ' + (isMinus ? 'minus' : 'plus');
   el.textContent = isMinus ? '−' : '+';
   el.style.left = x + 'px';
   el.style.top  = y + 'px';
+  el.style.width  = size + 'px';
+  el.style.height = size + 'px';
+  el.style.fontSize = (size * 0.55) + 'px';
 
-  el.onclick = () => {
-    volume = Math.max(0, Math.min(1, volume + (isMinus ? -0.15 : 0.15)));
-    if (masterGain) masterGain.gain.value = volume;
-    el.remove();
+  // lifetime ring
+  const ringSvg = document.createElementNS(SVG_NS, 'svg');
+  ringSvg.setAttribute('class', 'ring');
+  ringSvg.setAttribute('viewBox', '0 0 100 100');
+  const ring = document.createElementNS(SVG_NS, 'circle');
+  ring.setAttribute('cx', '50');
+  ring.setAttribute('cy', '50');
+  ring.setAttribute('r',  '46');
+  const C = 2 * Math.PI * 46;
+  ring.setAttribute('stroke-dasharray', C.toFixed(2));
+  ring.setAttribute('stroke-dashoffset', '0');
+  ring.style.transition = `stroke-dashoffset ${lifetime}ms linear`;
+  ringSvg.appendChild(ring);
+  el.appendChild(ringSvg);
+  // trigger transition
+  requestAnimationFrame(() => { ring.setAttribute('stroke-dashoffset', C.toFixed(2)); });
+
+  let resolved = false;
+  const resolve = (clicked) => {
+    if (resolved) return;
+    resolved = true;
+    clearTimeout(killer);
+    el.classList.add('gone');
+    setTimeout(() => el.remove(), 230);
+
+    if (clicked) {
+      hits++;
+      if (isMinus) {
+        // smaller targets reward more vol-reduction & more score
+        const sizeBonus = (100 - size) / 100;            // 0..0.78
+        const drop      = 0.08 + sizeBonus * 0.10;       // 8–18%
+        const points    = Math.round(50 + sizeBonus * 150); // 50–167 base
+        streak++;
+        if (streak > bestStreak) bestStreak = streak;
+        const streakMult = 1 + Math.min(streak * 0.05, 1); // up to 2x
+        const award = Math.round(points * streakMult);
+        score += award;
+        setVolume(volume - drop, true);
+        popup(x, y, '−' + Math.round(drop * 100) + '%', 'good');
+        shock(x, y, 'good');
+        blip(740 + Math.min(streak, 12) * 40, 0.10, 'square', 0.16);
+      } else {
+        // hit a TRAP
+        streak = 0;
+        score = Math.max(0, score - 60);
+        setVolume(volume + 0.10, true);
+        popup(x, y, 'TRAP +10%', 'bad');
+        shock(x, y, 'bad');
+        blip(140, 0.22, 'sawtooth', 0.22);
+      }
+    } else {
+      // expired untouched
+      if (isMinus) {
+        misses++;
+        streak = 0;
+        setVolume(volume + 0.05, true);
+      }
+      // ignored traps are GOOD — no penalty, no reward
+    }
+    updateHud();
   };
 
-  setTimeout(() => {
-    if (el.parentNode) {
-      volume = Math.min(1, volume + 0.08);
-      if (masterGain) masterGain.gain.value = volume;
-      el.remove();
-    }
-  }, 1600);
+  el.onmousedown = (ev) => { ev.preventDefault(); resolve(true); };
+  const killer = setTimeout(() => resolve(false), lifetime);
 
   game.appendChild(el);
 }
+
+function popup(x, y, text, kind) {
+  const p = document.createElement('div');
+  p.className = 'popup ' + kind;
+  p.textContent = text;
+  p.style.left = x + 'px';
+  p.style.top  = y + 'px';
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 900);
+}
+
+function shock(x, y, kind) {
+  const s = document.createElement('div');
+  s.className = 'shock ' + kind;
+  s.style.left = x + 'px';
+  s.style.top  = y + 'px';
+  document.body.appendChild(s);
+  setTimeout(() => s.remove(), 600);
+}
+
+function updateHud() {
+  hudScore.textContent  = score;
+  hudStreak.textContent = streak;
+  const total = hits + misses;
+  hudAccu.textContent = total === 0 ? '—' : Math.round(hits / total * 100) + '%';
+}
+
+// ─── WIN ────────────────────────────────────────────────────
+function winChaos() {
+  chaosWon = true;
+  // tear down chaos
+  clearInterval(chaosTickInt);
+  clearInterval(knobBounceInt);
+  clearInterval(lblBounceInt);
+  clearInterval(creepInt);
+  clearTimeout(spawnInt);
+  document.body.classList.remove('chaos');
+  try { chaosOsc.stop(); } catch(e) {}
+  if (masterGain) masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+
+  // clear remaining targets
+  game.querySelectorAll('.hit').forEach(e => e.remove());
+
+  // populate victory screen
+  const total = hits + misses;
+  const accu  = total === 0 ? 0 : Math.round(hits / total * 100);
+  const secs  = ((performance.now() - chaosStartTime) / 1000).toFixed(1);
+  document.getElementById('vic-score').textContent  = score;
+  document.getElementById('vic-accu').textContent   = accu + '%';
+  document.getElementById('vic-streak').textContent = bestStreak;
+  document.getElementById('vic-time').textContent   = secs + 's';
+  victory.classList.add('show');
+
+  // celebratory chord
+  blip(523, 0.18, 'triangle', 0.16);
+  setTimeout(() => blip(659, 0.18, 'triangle', 0.16), 110);
+  setTimeout(() => blip(784, 0.32, 'triangle', 0.18), 220);
+}
+
+document.getElementById('vic-again').onclick = () => location.reload();
 
 // ─── INTERACTION ────────────────────────────────────────────
 knob.addEventListener('mousedown', onDown);
 knob.addEventListener('touchstart', onDown, { passive: true });
 
 function onDown(e) {
+  if (chaosStarted) return;
   if (!audioStarted) { startAudio(); audioStarted = true; }
 
   isDragging = true;
@@ -561,7 +998,6 @@ function onDown(e) {
 
   if (!chaosScheduled) {
     chaosScheduled = true;
-    // pre-chaos warning shake 1s before
     setTimeout(() => {
       if (!chaosStarted) knob.classList.add('pre-chaos');
     }, 2400);
@@ -573,13 +1009,19 @@ window.addEventListener('mousemove', onMove);
 window.addEventListener('touchmove', onMove, { passive: true });
 
 function onMove(e) {
+  // crosshair tracking (chaos only)
+  if (chaosStarted && !chaosWon) {
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    crosshair.style.left = cx + 'px';
+    crosshair.style.top  = cy + 'px';
+  }
+
   if (!isDragging || chaosStarted) return;
   const y     = e.touches ? e.touches[0].clientY : e.clientY;
   const delta = (lastY - y) * 0.0058;
-  volume  = Math.max(0, Math.min(1, volume + delta));
-  if (masterGain) masterGain.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.012);
+  setVolume(volume + delta, false);
   lastY = y;
-  updateVisuals();
 }
 
 window.addEventListener('mouseup',  () => { isDragging = false; });
